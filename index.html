@@ -47,14 +47,8 @@
       font-weight: bold;
       color: #ffffff;
     }
-    /* トグルスイッチ用スタイル */
-    .toggle-checkbox:checked {
-      right: 0;
-      border-color: #06b6d4;
-    }
-    .toggle-checkbox:checked + .toggle-label {
-      background-color: #06b6d4;
-    }
+    input:checked ~ .dot { transform: translateX(100%); background-color: #06b6d4; }
+    input:checked ~ .block { background-color: rgba(6, 182, 212, 0.2); border-color: #06b6d4; }
   </style>
 </head>
 <body class="min-h-screen pb-12 relative">
@@ -69,7 +63,7 @@
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.545,6.477,2.545,12s4.476,10,10,10c5.768,0,9.65-4.056,9.65-9.816c0-0.665-0.063-1.31-0.176-1.945H12.545z"/></svg>
           <span id="auth-status">Googleログイン</span>
         </button>
-        <button onclick="openSettings()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-full border border-slate-700 transition">
+        <button onclick="openSettings()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-full border border-slate-700 transition" title="設定">
           ⚙️
         </button>
       </div>
@@ -97,7 +91,7 @@
         </div>
         <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
           <div>
-            <p class="text-xs text-slate-500">現在の天気 (<span id="weather-location-display">太田市</span>付近)</p>
+            <p class="text-xs text-slate-500">現在の天気 (<span id="weather-location-display">新潟市</span>)</p>
             <p id="weather-desc" class="text-sm font-bold text-cyan-300 mt-0.5">取得中...</p>
           </div>
           <div class="flex items-center gap-2">
@@ -169,6 +163,26 @@
         </div>
       </div>
     </div>
+
+    <div class="cyber-card rounded-2xl p-6 border-slate-800">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🏆</span>
+          <h2 class="text-sm font-bold text-slate-200 tracking-wide font-mono">MONTHLY RANKING</h2>
+          <span id="ranking-month-label" class="text-xs bg-slate-800 text-cyan-400 px-2 py-0.5 rounded font-mono">今月</span>
+        </div>
+        <span class="text-xs text-slate-500">※集中時間の合計</span>
+      </div>
+
+      <div id="ranking-list" class="space-y-2">
+        <div class="text-xs text-slate-500 text-center py-4">ランキングデータを読み込み中...</div>
+      </div>
+
+      <p class="text-xs text-slate-500 mt-4 text-right">
+        ※右上の⚙️設定から「ランキングに参加する」をオンにすると自分の記録が公開されます。
+      </p>
+    </div>
+
   </main>
 
   <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center px-4">
@@ -182,9 +196,9 @@
         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">天気予報の地域設定</label>
         <div class="grid grid-cols-2 gap-3">
           <select id="pref-select" onchange="updateCityDropdown()" class="bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg p-2.5 focus:border-cyan-500 focus:outline-none w-full">
-            </select>
+          </select>
           <select id="city-select" class="bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg p-2.5 focus:border-cyan-500 focus:outline-none w-full">
-            </select>
+          </select>
         </div>
       </div>
 
@@ -201,10 +215,6 @@
             <span class="text-xs text-slate-500">※いつでも自由に参加・取り消しが可能です。</span>
           </div>
         </label>
-        <style>
-          input:checked ~ .dot { transform: translateX(100%); background-color: #06b6d4; }
-          input:checked ~ .block { background-color: rgba(6, 182, 212, 0.2); border-color: #06b6d4; }
-        </style>
       </div>
 
       <button onclick="saveSettings()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-2.5 rounded-xl transition shadow-lg shadow-cyan-500/20">
@@ -216,7 +226,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDOpfsj_2HYXwA-12aivqqdsDlE48QwssM",
@@ -239,8 +249,9 @@
     let selectedTask = '勉強';
     let records = [];
 
-    // --- 地域データベース（必要に応じて追加可能） ---
+    // --- 地域データベース（新潟県追加版） ---
     const locationData = {
+      "新潟県": { "新潟市": {lat:37.92, lon:139.02}, "長岡市": {lat:37.44, lon:138.85}, "上越市": {lat:37.18, lon:138.23}, "三条市": {lat:37.63, lon:138.96}, "新発田市": {lat:37.94, lon:139.33} },
       "北海道": { "札幌市": {lat:43.06, lon:141.35}, "函館市": {lat:41.76, lon:140.73} },
       "群馬県": { "前橋市": {lat:36.38, lon:139.07}, "太田市": {lat:36.29, lon:139.37}, "高崎市": {lat:36.32, lon:139.00} },
       "東京都": { "新宿区": {lat:35.68, lon:139.70}, "八王子市": {lat:35.66, lon:139.33} },
@@ -248,9 +259,9 @@
       "福岡県": { "福岡市": {lat:33.59, lon:130.40}, "北九州市": {lat:33.88, lon:130.87} }
     };
 
-    // --- ユーザー設定 ---
+    // --- ユーザーデフォルト設定（デフォルト：新潟県新潟市） ---
     const defaultSettings = {
-      location: { pref: '群馬県', city: '太田市', lat: 36.294, lon: 139.373 },
+      location: { pref: '新潟県', city: '新潟市', lat: 37.92, lon: 139.02 },
       isRankingPublic: false
     };
     let userSettings = JSON.parse(localStorage.getItem('focus_settings')) || defaultSettings;
@@ -266,7 +277,7 @@
     let calYear = currentDate.getFullYear();
     let calMonth = currentDate.getMonth();
 
-    // --- 認証ステータスの監視 ---
+    // --- 認証監視 ---
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
@@ -281,6 +292,7 @@
         if(unsubscribeRecords) { unsubscribeRecords(); unsubscribeRecords = null; }
         loadLocalData();
       }
+      fetchMonthlyRanking();
     });
 
     window.toggleAuth = () => {
@@ -328,6 +340,7 @@
         records = [];
         snapshot.forEach((doc) => { records.push(doc.data()); });
         updateViews();
+        updateCloudUserMonthlyTotal();
       });
     }
 
@@ -338,9 +351,102 @@
       updateTimerDisplay();
     }
 
+    // --- 今月の合計時間を計算＆クラウド反映 ---
+    function getCurrentMonthTotalSeconds() {
+      const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+      return records
+        .filter(r => r.date && r.date.startsWith(currentMonthKey))
+        .reduce((sum, r) => sum + (r.duration || 0), 0);
+    }
+
+    async function updateCloudUserMonthlyTotal() {
+      if (!currentUser) return;
+      const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+      const monthSec = getCurrentMonthTotalSeconds();
+
+      const userDocRef = doc(db, "users", currentUser.uid);
+      await setDoc(userDocRef, {
+        displayName: currentUser.displayName || "匿名ユーザー",
+        monthlyTotalSec: monthSec,
+        monthlyKey: currentMonthKey,
+        settings: userSettings
+      }, { merge: true });
+
+      fetchMonthlyRanking();
+    }
+
+    // --- 月間ランキング取得＆描画 ---
+    async function fetchMonthlyRanking() {
+      const rankingListEl = document.getElementById('ranking-list');
+      const monthLabel = document.getElementById('ranking-month-label');
+      const now = new Date();
+      const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      monthLabel.innerText = `${now.getFullYear()}年${now.getMonth() + 1}月`;
+
+      try {
+        const querySnapshot = await getDocs(collection(db, "users"));
+        let rankings = [];
+
+        querySnapshot.forEach(docSnap => {
+          const u = docSnap.data();
+          if (u.settings?.isRankingPublic && u.monthlyKey === currentMonthKey && u.monthlyTotalSec > 0) {
+            rankings.push({
+              name: u.displayName || "匿名ユーザー",
+              sec: u.monthlyTotalSec,
+              isMe: currentUser && docSnap.id === currentUser.uid
+            });
+          }
+        });
+
+        // ログインしておらずローカルにデータがある場合の自分用ダミー追加（プレビュー用）
+        if (!currentUser && userSettings.isRankingPublic) {
+          const localSec = getCurrentMonthTotalSeconds();
+          if (localSec > 0) {
+            rankings.push({ name: "あなた (ローカル)", sec: localSec, isMe: true });
+          }
+        }
+
+        // 降順ソート
+        rankings.sort((a, b) => b.sec - a.sec);
+
+        if (rankings.length === 0) {
+          rankingListEl.innerHTML = `<div class="text-xs text-slate-500 text-center py-4">今月のランキングデータはまだありません</div>`;
+          return;
+        }
+
+        rankingListEl.innerHTML = '';
+        const rankBadges = ['🥇', '🥈', '🥉'];
+
+        rankings.slice(0, 10).forEach((item, index) => {
+          const hours = (item.sec / 3600).toFixed(1);
+          const badge = rankBadges[index] || `<span class="font-mono text-slate-500 w-5 text-center inline-block">${index + 1}</span>`;
+          
+          const row = document.createElement('div');
+          row.className = `flex justify-between items-center p-2.5 rounded-xl border text-xs ${
+            item.isMe 
+              ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-200' 
+              : 'bg-slate-900/60 border-slate-800 text-slate-300'
+          }`;
+
+          row.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="text-base">${badge}</span>
+              <span class="font-bold">${item.name} ${item.isMe ? '<span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded ml-1">YOU</span>' : ''}</span>
+            </div>
+            <div class="font-mono font-bold text-cyan-400">
+              ${hours} <span class="text-slate-500 text-[10px]">時間</span>
+            </div>
+          `;
+          rankingListEl.appendChild(row);
+        });
+
+      } catch (e) {
+        rankingListEl.innerHTML = `<div class="text-xs text-slate-500 text-center py-4">ランキングの取得に失敗しました</div>`;
+      }
+    }
+
     // --- 設定モーダル関連 ---
     window.openSettings = () => {
-      // 現在の設定をUIに反映
       const prefSelect = document.getElementById('pref-select');
       prefSelect.innerHTML = '';
       Object.keys(locationData).forEach(pref => {
@@ -348,10 +454,10 @@
         opt.value = pref; opt.innerText = pref;
         prefSelect.appendChild(opt);
       });
-      prefSelect.value = userSettings.location.pref || '群馬県';
+      prefSelect.value = userSettings.location.pref || '新潟県';
       
       window.updateCityDropdown();
-      document.getElementById('city-select').value = userSettings.location.city || '太田市';
+      document.getElementById('city-select').value = userSettings.location.city || '新潟市';
       document.getElementById('ranking-toggle').checked = userSettings.isRankingPublic || false;
 
       document.getElementById('settings-modal').classList.remove('hidden');
@@ -388,11 +494,13 @@
       if (currentUser) {
         const docRef = doc(db, "users", currentUser.uid);
         await setDoc(docRef, { settings: userSettings }, { merge: true });
+        updateCloudUserMonthlyTotal();
       }
       localStorage.setItem('focus_settings', JSON.stringify(userSettings));
 
       window.closeSettings();
       fetchWeather();
+      fetchMonthlyRanking();
       alert("設定を保存しました。");
     };
 
@@ -446,7 +554,7 @@
       }
     }
 
-    // --- タイマー操作関連 ---
+    // --- タイマー操作 ---
     window.switchMode = (mode) => {
       if (isRunning) window.pauseTimer();
       timerMode = mode;
@@ -556,6 +664,7 @@
         records.unshift(newRecord);
         localStorage.setItem('focus_records', JSON.stringify(records));
         updateViews();
+        fetchMonthlyRanking();
       }
     }
 
