@@ -47,19 +47,30 @@
       font-weight: bold;
       color: #ffffff;
     }
+    /* トグルスイッチ用スタイル */
+    .toggle-checkbox:checked {
+      right: 0;
+      border-color: #06b6d4;
+    }
+    .toggle-checkbox:checked + .toggle-label {
+      background-color: #06b6d4;
+    }
   </style>
 </head>
-<body class="min-h-screen pb-12">
+<body class="min-h-screen pb-12 relative">
 
-  <header class="border-b border-slate-800 bg-slate-950/80 sticky top-0 z-50 backdrop-blur-md">
+  <header class="border-b border-slate-800 bg-slate-950/80 sticky top-0 z-40 backdrop-blur-md">
     <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-3">
         <h1 class="text-xl font-bold font-mono tracking-wider text-cyan-400 neon-text">FOCUS // DASHBOARD</h1>
       </div>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3">
         <button id="auth-btn" onclick="toggleAuth()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700 transition flex items-center gap-1.5">
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.545,6.477,2.545,12s4.476,10,10,10c5.768,0,9.65-4.056,9.65-9.816c0-0.665-0.063-1.31-0.176-1.945H12.545z"/></svg>
           <span id="auth-status">Googleログイン</span>
+        </button>
+        <button onclick="openSettings()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-full border border-slate-700 transition">
+          ⚙️
         </button>
       </div>
     </div>
@@ -86,7 +97,7 @@
         </div>
         <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
           <div>
-            <p class="text-xs text-slate-500">現在の天気 (群馬県付近)</p>
+            <p class="text-xs text-slate-500">現在の天気 (<span id="weather-location-display">太田市</span>付近)</p>
             <p id="weather-desc" class="text-sm font-bold text-cyan-300 mt-0.5">取得中...</p>
           </div>
           <div class="flex items-center gap-2">
@@ -125,67 +136,88 @@
           <button id="mode-sw" onclick="switchMode('sw')" class="px-3 py-1 text-xs rounded-md text-slate-400 hover:text-white transition">ストップウォッチ</button>
         </div>
       </div>
-
       <div class="text-center my-4">
-        <div id="timer-display" class="font-mono text-6xl md:text-8xl font-bold tracking-tight text-white mb-2">
-          25:00
-        </div>
+        <div id="timer-display" class="font-mono text-6xl md:text-8xl font-bold tracking-tight text-white mb-2">25:00</div>
         <p id="current-task-display" class="text-slate-400 text-sm mt-2">選択中: <span class="text-cyan-400 font-bold">未選択</span></p>
       </div>
-
       <div id="preset-buttons" class="flex justify-center gap-2 my-6">
         <button onclick="setTimerMinutes(5)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-3 py-1.5 rounded-lg font-mono transition">5分</button>
         <button onclick="setTimerMinutes(15)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-3 py-1.5 rounded-lg font-mono transition">15分</button>
         <button onclick="setTimerMinutes(25)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-3 py-1.5 rounded-lg font-mono transition">25分</button>
         <button onclick="setTimerMinutes(50)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-3 py-1.5 rounded-lg font-mono transition">50分</button>
       </div>
-
       <div class="flex justify-center gap-4">
-        <button id="start-btn" onclick="startTimer()" class="w-36 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg shadow-cyan-500/30 flex items-center justify-center gap-2">
-          ▶ 開始する
-        </button>
-        <button id="pause-btn" onclick="pauseTimer()" class="hidden w-36 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg shadow-amber-500/30">
-          ⏸ 一時停止
-        </button>
-        <button id="reset-btn" onclick="resetTimer()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold px-4 py-3 rounded-xl transition">
-          リセット
-        </button>
+        <button id="start-btn" onclick="startTimer()" class="w-36 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg shadow-cyan-500/30 flex items-center justify-center gap-2">▶ 開始する</button>
+        <button id="pause-btn" onclick="pauseTimer()" class="hidden w-36 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg shadow-amber-500/30">⏸ 一時停止</button>
+        <button id="reset-btn" onclick="resetTimer()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold px-4 py-3 rounded-xl transition">リセット</button>
       </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="cyber-card rounded-2xl p-6">
-        <h2 class="text-xs font-bold text-slate-400 tracking-wider mb-4 uppercase flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-          やる内容を選択
-        </h2>
+        <h2 class="text-xs font-bold text-slate-400 tracking-wider mb-4 uppercase flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-cyan-400"></span>やる内容を選択</h2>
         <div id="task-tags" class="flex flex-wrap gap-2 mb-4"></div>
         <form onsubmit="addNewTask(event)" class="flex gap-2">
           <input type="text" id="new-task-input" placeholder="新しい作業名を追加..." class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-cyan-500 flex-1 transition">
-          <button type="submit" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-sm font-bold px-4 py-2 rounded-xl transition">
-            追加
-          </button>
+          <button type="submit" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-sm font-bold px-4 py-2 rounded-xl transition">追加</button>
         </form>
       </div>
-
       <div class="cyber-card rounded-2xl p-6 flex flex-col justify-between">
         <div>
-          <h2 class="text-xs font-bold text-slate-400 tracking-wider mb-4 uppercase">
-            最近のログ
-          </h2>
+          <h2 class="text-xs font-bold text-slate-400 tracking-wider mb-4 uppercase">最近のログ</h2>
           <ul id="log-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></ul>
         </div>
       </div>
     </div>
-
   </main>
+
+  <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center px-4">
+    <div class="cyber-card w-full max-w-md rounded-2xl p-6 border-cyan-500/50 shadow-lg shadow-cyan-500/10">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-lg font-bold text-slate-200 tracking-wide font-mono">⚙️ SETTINGS</h2>
+        <button onclick="closeSettings()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">天気予報の地域設定</label>
+        <div class="grid grid-cols-2 gap-3">
+          <select id="pref-select" onchange="updateCityDropdown()" class="bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg p-2.5 focus:border-cyan-500 focus:outline-none w-full">
+            </select>
+          <select id="city-select" class="bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg p-2.5 focus:border-cyan-500 focus:outline-none w-full">
+            </select>
+        </div>
+      </div>
+
+      <div class="mb-8 pt-4 border-t border-slate-800">
+        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">プライバシー設定</label>
+        <label class="flex items-center cursor-pointer">
+          <div class="relative">
+            <input type="checkbox" id="ranking-toggle" class="sr-only">
+            <div class="block bg-slate-800 border border-slate-700 w-10 h-6 rounded-full transition"></div>
+            <div class="dot absolute left-1 top-1 bg-slate-400 w-4 h-4 rounded-full transition transform"></div>
+          </div>
+          <div class="ml-3 text-sm text-slate-300">
+            ランキングに参加する<br>
+            <span class="text-xs text-slate-500">※いつでも自由に参加・取り消しが可能です。</span>
+          </div>
+        </label>
+        <style>
+          input:checked ~ .dot { transform: translateX(100%); background-color: #06b6d4; }
+          input:checked ~ .block { background-color: rgba(6, 182, 212, 0.2); border-color: #06b6d4; }
+        </style>
+      </div>
+
+      <button onclick="saveSettings()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-2.5 rounded-xl transition shadow-lg shadow-cyan-500/20">
+        設定を保存する
+      </button>
+    </div>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-    // ユーザーの設定キー
     const firebaseConfig = {
       apiKey: "AIzaSyDOpfsj_2HYXwA-12aivqqdsDlE48QwssM",
       authDomain: "mydashboard-d9ded.firebaseapp.com",
@@ -203,18 +235,33 @@
     // --- 状態管理 ---
     let currentUser = null;
     let unsubscribeRecords = null;
-
     let tasks = [];
     let selectedTask = '勉強';
     let records = [];
 
+    // --- 地域データベース（必要に応じて追加可能） ---
+    const locationData = {
+      "北海道": { "札幌市": {lat:43.06, lon:141.35}, "函館市": {lat:41.76, lon:140.73} },
+      "群馬県": { "前橋市": {lat:36.38, lon:139.07}, "太田市": {lat:36.29, lon:139.37}, "高崎市": {lat:36.32, lon:139.00} },
+      "東京都": { "新宿区": {lat:35.68, lon:139.70}, "八王子市": {lat:35.66, lon:139.33} },
+      "大阪府": { "大阪市": {lat:34.69, lon:135.50}, "堺市": {lat:34.57, lon:135.48} },
+      "福岡県": { "福岡市": {lat:33.59, lon:130.40}, "北九州市": {lat:33.88, lon:130.87} }
+    };
+
+    // --- ユーザー設定 ---
+    const defaultSettings = {
+      location: { pref: '群馬県', city: '太田市', lat: 36.294, lon: 139.373 },
+      isRankingPublic: false
+    };
+    let userSettings = JSON.parse(localStorage.getItem('focus_settings')) || defaultSettings;
+
+    // --- タイマー・カレンダー状態 ---
     let timerMode = 'timer';
     let timerSeconds = 25 * 60;
     let initialTimerSeconds = 25 * 60;
     let swSeconds = 0;
     let timerInterval = null;
     let isRunning = false;
-
     const currentDate = new Date();
     let calYear = currentDate.getFullYear();
     let calMonth = currentDate.getMonth();
@@ -225,24 +272,20 @@
         currentUser = user;
         document.getElementById('auth-status').innerText = 'ログアウト';
         document.getElementById('auth-status').classList.add('text-cyan-400');
-        await loadCloudTasks(user.uid);
+        await loadCloudUserData(user.uid);
         listenCloudRecords(user.uid);
       } else {
         currentUser = null;
         document.getElementById('auth-status').innerText = 'Googleログイン';
         document.getElementById('auth-status').classList.remove('text-cyan-400');
-        if(unsubscribeRecords) {
-          unsubscribeRecords();
-          unsubscribeRecords = null;
-        }
+        if(unsubscribeRecords) { unsubscribeRecords(); unsubscribeRecords = null; }
         loadLocalData();
       }
     });
 
-    // ログイン・ログアウト処理
     window.toggleAuth = () => {
       if (currentUser) {
-        signOut(auth).then(() => { alert("ログアウトしました。ローカル保存モードに切り替わります。"); });
+        signOut(auth).then(() => { alert("ログアウトしました。"); });
       } else {
         const provider = new GoogleAuthProvider();
         signInWithPopup(auth, provider).catch(error => {
@@ -257,31 +300,33 @@
       tasks = JSON.parse(localStorage.getItem('focus_tasks')) || ['勉強', '読書', 'PC作業', '片付け'];
       selectedTask = tasks[0];
       records = JSON.parse(localStorage.getItem('focus_records')) || [];
+      userSettings = JSON.parse(localStorage.getItem('focus_settings')) || defaultSettings;
       renderTasks();
       updateViews();
+      fetchWeather();
     }
 
-    async function loadCloudTasks(uid) {
+    async function loadCloudUserData(uid) {
       const docRef = doc(db, "users", uid);
       const docSnap = await getDoc(docRef);
-      if (docSnap.exists() && docSnap.data().tasks) {
-        tasks = docSnap.data().tasks;
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.tasks) tasks = data.tasks;
+        if (data.settings) userSettings = data.settings;
       } else {
-        // 初回ログイン時にローカルのタスクをクラウドに引き継ぐ
         tasks = JSON.parse(localStorage.getItem('focus_tasks')) || ['勉強', '読書', 'PC作業', '片付け'];
-        await setDoc(docRef, { tasks: tasks }, { merge: true });
+        await setDoc(docRef, { tasks: tasks, settings: userSettings }, { merge: true });
       }
       selectedTask = tasks[0] || '';
       renderTasks();
+      fetchWeather();
     }
 
     function listenCloudRecords(uid) {
       const q = query(collection(db, "users", uid, "records"), orderBy("timestamp", "desc"));
       unsubscribeRecords = onSnapshot(q, (snapshot) => {
         records = [];
-        snapshot.forEach((doc) => {
-          records.push(doc.data());
-        });
+        snapshot.forEach((doc) => { records.push(doc.data()); });
         updateViews();
       });
     }
@@ -292,6 +337,64 @@
       updateStreak();
       updateTimerDisplay();
     }
+
+    // --- 設定モーダル関連 ---
+    window.openSettings = () => {
+      // 現在の設定をUIに反映
+      const prefSelect = document.getElementById('pref-select');
+      prefSelect.innerHTML = '';
+      Object.keys(locationData).forEach(pref => {
+        const opt = document.createElement('option');
+        opt.value = pref; opt.innerText = pref;
+        prefSelect.appendChild(opt);
+      });
+      prefSelect.value = userSettings.location.pref || '群馬県';
+      
+      window.updateCityDropdown();
+      document.getElementById('city-select').value = userSettings.location.city || '太田市';
+      document.getElementById('ranking-toggle').checked = userSettings.isRankingPublic || false;
+
+      document.getElementById('settings-modal').classList.remove('hidden');
+    };
+
+    window.closeSettings = () => {
+      document.getElementById('settings-modal').classList.add('hidden');
+    };
+
+    window.updateCityDropdown = () => {
+      const pref = document.getElementById('pref-select').value;
+      const citySelect = document.getElementById('city-select');
+      citySelect.innerHTML = '';
+      if(locationData[pref]) {
+        Object.keys(locationData[pref]).forEach(city => {
+          const opt = document.createElement('option');
+          opt.value = city; opt.innerText = city;
+          citySelect.appendChild(opt);
+        });
+      }
+    };
+
+    window.saveSettings = async () => {
+      const pref = document.getElementById('pref-select').value;
+      const city = document.getElementById('city-select').value;
+      const coords = locationData[pref][city];
+      const isPublic = document.getElementById('ranking-toggle').checked;
+
+      userSettings = {
+        location: { pref: pref, city: city, lat: coords.lat, lon: coords.lon },
+        isRankingPublic: isPublic
+      };
+
+      if (currentUser) {
+        const docRef = doc(db, "users", currentUser.uid);
+        await setDoc(docRef, { settings: userSettings }, { merge: true });
+      }
+      localStorage.setItem('focus_settings', JSON.stringify(userSettings));
+
+      window.closeSettings();
+      fetchWeather();
+      alert("設定を保存しました。");
+    };
 
     // --- 時計・天気処理 ---
     document.addEventListener('DOMContentLoaded', () => {
@@ -318,7 +421,11 @@
 
     async function fetchWeather() {
       try {
-        const url = 'https://api.open-meteo.com/v1/forecast?latitude=36.294&longitude=139.373&current_weather=true&timezone=Asia%2FTokyo';
+        const lat = userSettings.location.lat;
+        const lon = userSettings.location.lon;
+        document.getElementById('weather-location-display').innerText = userSettings.location.city;
+
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=Asia%2FTokyo`;
         const res = await fetch(url);
         const data = await res.json();
         const temp = data.current_weather.temperature;
@@ -420,7 +527,7 @@
         }
       }
       resetTimerInternal();
-    };
+    }
 
     function resetTimerInternal() {
       window.pauseTimer();
@@ -443,12 +550,9 @@
       };
 
       if (currentUser) {
-        // クラウドへ保存
         const recordsRef = collection(db, "users", currentUser.uid, "records");
         await addDoc(recordsRef, { ...newRecord, timestamp: serverTimestamp() });
-        // ※クラウドの場合は onSnapshot で自動的に画面が更新されます
       } else {
-        // ローカルへ保存
         records.unshift(newRecord);
         localStorage.setItem('focus_records', JSON.stringify(records));
         updateViews();
