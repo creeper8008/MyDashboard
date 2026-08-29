@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FOCUS DASHBOARD</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #090d16;
+      color: #f1f5f9;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .neon-glow {
+      box-shadow: 0 0 25px rgba(6, 182, 212, 0.15);
+    }
+    .neon-text {
+      text-shadow: 0 0 10px rgba(6, 182, 212, 0.6);
+    }
+    .cyber-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.5);
+    }
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+    }
+    .has-record {
+      background-color: rgba(6, 182, 212, 0.2);
+      border: 1px solid #06b6d4;
+      color: #38bdf8;
+      font-weight: bold;
+    }
+    .is-today {
+      ring: 2px;
+      outline: 2px solid #38bdf8;
+      outline-offset: -2px;
+      font-weight: bold;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-12">
+
+  <header class="border-b border-slate-800 bg-slate-950/80 sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <h1 class="text-xl font-bold font-mono tracking-wider text-cyan-400 neon-text">FOCUS // DASHBOARD</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <button id="auth-btn" onclick="toggleAuth()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-full border border-slate-700 transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.545,6.477,2.545,12s4.476,10,10,10c5.768,0,9.65-4.056,9.65-9.816c0-0.665-0.063-1.31-0.176-1.945H12.545z"/></svg>
+          <span id="auth-status">Googleログイン</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 mt-6 space-y-6">
+
+    <div class="px-2">
+      <h2 id="greeting-text" class="text-lg md:text-xl font-bold text-slate-200 tracking-wide">
+        読み込み中...
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="cyber-card rounded-2xl p-6 flex flex-col justify-between">
+        <div>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">現在の時刻</p>
+          <div id="big-clock" class="font-mono text-5xl md:text-6xl font-bold text-white neon-text tracking-tight mb-2">
+            --:--:--
+          </div>
+          <div id="big-date" class="text-cyan-400 font-bold tracking-wide text-sm md:text-base">
+            ----年--月--日 (--)
+          </div>
+        </div>
+        <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between">
+          <div>
+            <p class="text-xs text-slate-500">現在の天気 (群馬県付近)</p>
+            <p id="weather-desc" class="text-sm font-bold text-cyan-300 mt-0.5">取得中...</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="weather-icon" class="text-3xl">☁️</span>
+            <span id="weather-temp" class="text-2xl font-bold font-mono text-white">--°C</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cyber-card rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xs font-bold text-slate-400 tracking-wider uppercase">記録カレンダー</h2>
+          <div class="flex items-center gap-2">
+            <button onclick="changeMonth(-1)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded text-xs transition">&lt;</button>
+            <span id="calendar-month-title" class="font-mono text-cyan-400 text-xs w-16 text-center"></span>
+            <button onclick="changeMonth(1)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded text-xs transition">&gt;</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-7 gap-1 text-center text-xs text-slate-500 mb-2">
+          <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+        </div>
+        <div id="calendar-days" class="grid grid-cols-7 gap-1"></div>
+      </div>
+    </div>
+
+    <div class="cyber-card rounded-2xl p-6 md:p-8 neon-glow border-cyan-500/30">
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-2 bg-slate-900/80 border border-slate-800 px-3 py-1 rounded-full">
+          <span class="text-amber-500">🔥</span>
+          <span class="text-xs text-slate-400">連続記録:</span>
+          <span id="streak-count" class="font-mono text-cyan-400 font-bold">0</span>
+          <span class="text-xs text-slate-400">日</span>
+        </div>
+        <div class="flex bg-slate-900 p-1 rounded-lg border border-slate-800">
+          <button id="mode-timer" onclick="switchMode('timer')" class="px-3 py-1 text-xs rounded-md font-bold transition bg-cyan-500 text-slate-950">タイマー</button>
+          <button id="mode-sw" onclick="switchMode('sw')" class="px-3 py-1 text-xs rounded-md text-slate-400 hover:text-white transition">ストップウォッチ</button>
+        </div>
+      </div>
+
+      <div class="text-center my-4">
+        <div id="timer-display" class="font-mono text-6xl md:text-8xl font-bold tracking-tight text-white mb-2">
+          25:00
+        </div>
+        <p id="current-task-display" class="text-slate-400 text-sm mt-2">選択中: <span class="text-cyan-400 font-bold">未選択</span></p>
+      </div>
+
+      <div id="preset-buttons" class="flex justify-center gap-2 my-6">
+        <button onclick="setTimerMinutes(5)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-3 py-1.5 rounded-lg font-mono transition">5分</button>
+        <button onclick="setTimerMinutes(15)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-3 py-1.5 rounded-lg font-mono transition">15分</button>
+        <button onclick="setTimerMinutes(25)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-3 py-1.5 rounded-lg font-mono transition">25分</button>
+        <button onclick="setTimerMinutes(50)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs px-3 py-1.5 rounded-lg font-mono transition">50分</button>
+      </div>
+
+      <div class="flex justify-center gap-4">
+        <button id="start-btn" onclick="startTimer()" class="w-36 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg shadow-cyan-500/30 flex items-center justify-center gap-2">
+          ▶ 開始する
+        </button>
+        <button id="pause-btn" onclick="pauseTimer()" class="hidden w-36 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg shadow-amber-500/30">
+          ⏸ 一時停止
+        </button>
+        <button id="reset-btn" onclick="resetTimer()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold px-4 py-3 rounded-xl transition">
+          リセット
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="cyber-card rounded-2xl p-6">
+        <h2 class="text-xs font-bold text-slate-400 tracking-wider mb-4 uppercase flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+          やる内容を選択
+        </h2>
+        <div id="task-tags" class="flex flex-wrap gap-2 mb-4"></div>
+        <form onsubmit="addNewTask(event)" class="flex gap-2">
+          <input type="text" id="new-task-input" placeholder="新しい作業名を追加..." class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-cyan-500 flex-1 transition">
+          <button type="submit" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-sm font-bold px-4 py-2 rounded-xl transition">
+            追加
+          </button>
+        </form>
+      </div>
+
+      <div class="cyber-card rounded-2xl p-6 flex flex-col justify-between">
+        <div>
+          <h2 class="text-xs font-bold text-slate-400 tracking-wider mb-4 uppercase">
+            最近のログ
+          </h2>
+          <ul id="log-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></ul>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+    // ユーザーの設定キー
+    const firebaseConfig = {
+      apiKey: "AIzaSyDOpfsj_2HYXwA-12aivqqdsDlE48QwssM",
+      authDomain: "mydashboard-d9ded.firebaseapp.com",
+      projectId: "mydashboard-d9ded",
+      storageBucket: "mydashboard-d9ded.firebasestorage.app",
+      messagingSenderId: "649080371129",
+      appId: "1:649080371129:web:8ab3c7ca9583d29fc1a868",
+      measurementId: "G-RPFHJXM076"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // --- 状態管理 ---
+    let currentUser = null;
+    let unsubscribeRecords = null;
+
+    let tasks = [];
+    let selectedTask = '勉強';
+    let records = [];
+
+    let timerMode = 'timer';
+    let timerSeconds = 25 * 60;
+    let initialTimerSeconds = 25 * 60;
+    let swSeconds = 0;
+    let timerInterval = null;
+    let isRunning = false;
+
+    const currentDate = new Date();
+    let calYear = currentDate.getFullYear();
+    let calMonth = currentDate.getMonth();
+
+    // --- 認証ステータスの監視 ---
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('auth-status').innerText = 'ログアウト';
+        document.getElementById('auth-status').classList.add('text-cyan-400');
+        await loadCloudTasks(user.uid);
+        listenCloudRecords(user.uid);
+      } else {
+        currentUser = null;
+        document.getElementById('auth-status').innerText = 'Googleログイン';
+        document.getElementById('auth-status').classList.remove('text-cyan-400');
+        if(unsubscribeRecords) {
+          unsubscribeRecords();
+          unsubscribeRecords = null;
+        }
+        loadLocalData();
+      }
+    });
+
+    // ログイン・ログアウト処理
+    window.toggleAuth = () => {
+      if (currentUser) {
+        signOut(auth).then(() => { alert("ログアウトしました。ローカル保存モードに切り替わります。"); });
+      } else {
+        const provider = new GoogleAuthProvider();
+        signInWithPopup(auth, provider).catch(error => {
+          console.error("Login failed:", error);
+          alert("ログインに失敗しました。");
+        });
+      }
+    };
+
+    // --- データ読み込み ---
+    function loadLocalData() {
+      tasks = JSON.parse(localStorage.getItem('focus_tasks')) || ['勉強', '読書', 'PC作業', '片付け'];
+      selectedTask = tasks[0];
+      records = JSON.parse(localStorage.getItem('focus_records')) || [];
+      renderTasks();
+      updateViews();
+    }
+
+    async function loadCloudTasks(uid) {
+      const docRef = doc(db, "users", uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists() && docSnap.data().tasks) {
+        tasks = docSnap.data().tasks;
+      } else {
+        // 初回ログイン時にローカルのタスクをクラウドに引き継ぐ
+        tasks = JSON.parse(localStorage.getItem('focus_tasks')) || ['勉強', '読書', 'PC作業', '片付け'];
+        await setDoc(docRef, { tasks: tasks }, { merge: true });
+      }
+      selectedTask = tasks[0] || '';
+      renderTasks();
+    }
+
+    function listenCloudRecords(uid) {
+      const q = query(collection(db, "users", uid, "records"), orderBy("timestamp", "desc"));
+      unsubscribeRecords = onSnapshot(q, (snapshot) => {
+        records = [];
+        snapshot.forEach((doc) => {
+          records.push(doc.data());
+        });
+        updateViews();
+      });
+    }
+
+    function updateViews() {
+      renderCalendar();
+      renderLogs();
+      updateStreak();
+      updateTimerDisplay();
+    }
+
+    // --- 時計・天気処理 ---
+    document.addEventListener('DOMContentLoaded', () => {
+      updateClock();
+      setInterval(updateClock, 1000);
+      fetchWeather();
+    });
+
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('big-clock').innerText = `${h}:${m}:${s}`;
+      const days = ['日', '月', '火', '水', '木', '金', '土'];
+      document.getElementById('big-date').innerText = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 (${days[now.getDay()]})`;
+
+      const hour = now.getHours();
+      let greeting = "こんにちは、";
+      if (hour >= 5 && hour < 11) greeting = "おはようございます、";
+      else if (hour >= 18 || hour < 5) greeting = "こんばんは、";
+      document.getElementById('greeting-text').innerText = `${greeting}今日も良い時間にしましょう。`;
+    }
+
+    async function fetchWeather() {
+      try {
+        const url = 'https://api.open-meteo.com/v1/forecast?latitude=36.294&longitude=139.373&current_weather=true&timezone=Asia%2FTokyo';
+        const res = await fetch(url);
+        const data = await res.json();
+        const temp = data.current_weather.temperature;
+        const code = data.current_weather.weathercode;
+        document.getElementById('weather-temp').innerText = `${temp}°C`;
+        
+        let icon = "🌤"; let desc = "晴れ/曇り";
+        if(code <= 1) { icon = "☀️"; desc = "快晴"; }
+        else if(code <= 3) { icon = "☁️"; desc = "曇り"; }
+        else if(code <= 49) { icon = "🌫"; desc = "霧"; }
+        else if(code <= 69) { icon = "☔"; desc = "雨"; }
+        else if(code <= 79) { icon = "⛄"; desc = "雪"; }
+        else { icon = "⛈"; desc = "荒天"; }
+        document.getElementById('weather-icon').innerText = icon;
+        document.getElementById('weather-desc').innerText = desc;
+      } catch (error) {
+        document.getElementById('weather-desc').innerText = "取得失敗";
+      }
+    }
+
+    // --- タイマー操作関連 ---
+    window.switchMode = (mode) => {
+      if (isRunning) window.pauseTimer();
+      timerMode = mode;
+      const btnTimer = document.getElementById('mode-timer');
+      const btnSw = document.getElementById('mode-sw');
+      const presets = document.getElementById('preset-buttons');
+      const resetBtn = document.getElementById('reset-btn');
+
+      if (mode === 'timer') {
+        btnTimer.className = "px-3 py-1 text-xs rounded-md font-bold transition bg-cyan-500 text-slate-950";
+        btnSw.className = "px-3 py-1 text-xs rounded-md text-slate-400 hover:text-white transition";
+        presets.classList.remove('hidden');
+        resetBtn.innerText = "リセット";
+      } else {
+        btnSw.className = "px-3 py-1 text-xs rounded-md font-bold transition bg-cyan-500 text-slate-950";
+        btnTimer.className = "px-3 py-1 text-xs rounded-md text-slate-400 hover:text-white transition";
+        presets.classList.add('hidden');
+        resetBtn.innerText = "リセット ＆ 記録";
+      }
+      resetTimerInternal();
+    };
+
+    function updateTimerDisplay() {
+      const display = document.getElementById('timer-display');
+      const totalSec = timerMode === 'timer' ? timerSeconds : swSeconds;
+      const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+      const s = String(totalSec % 60).padStart(2, '0');
+      display.innerText = `${m}:${s}`;
+      const taskDisplay = document.getElementById('current-task-display');
+      if(taskDisplay) taskDisplay.innerHTML = `選択中: <span class="text-cyan-400 font-bold">${selectedTask}</span>`;
+    }
+
+    window.setTimerMinutes = (min) => {
+      if (isRunning) window.pauseTimer();
+      initialTimerSeconds = min * 60;
+      timerSeconds = initialTimerSeconds;
+      updateTimerDisplay();
+    };
+
+    window.startTimer = () => {
+      if (isRunning) return;
+      isRunning = true;
+      document.getElementById('start-btn').classList.add('hidden');
+      document.getElementById('pause-btn').classList.remove('hidden');
+
+      timerInterval = setInterval(() => {
+        if (timerMode === 'timer') {
+          if (timerSeconds > 0) {
+            timerSeconds--;
+            updateTimerDisplay();
+          } else {
+            completeSession(initialTimerSeconds);
+            resetTimerInternal();
+            alert(`🎉 お疲れ様です！ 「${selectedTask}」が完了しました！`);
+          }
+        } else {
+          swSeconds++;
+          updateTimerDisplay();
+        }
+      }, 1000);
+    };
+
+    window.pauseTimer = () => {
+      if (!isRunning) return;
+      isRunning = false;
+      clearInterval(timerInterval);
+      document.getElementById('start-btn').classList.remove('hidden');
+      document.getElementById('pause-btn').classList.add('hidden');
+    };
+
+    window.resetTimer = () => {
+      window.pauseTimer();
+      if (timerMode === 'sw' && swSeconds >= 1) {
+        const m = Math.floor(swSeconds / 60);
+        const s = swSeconds % 60;
+        if (confirm(`計測した ${m}分${s}秒 を記録しますか？`)) {
+          completeSession(swSeconds);
+        }
+      }
+      resetTimerInternal();
+    };
+
+    function resetTimerInternal() {
+      window.pauseTimer();
+      timerSeconds = initialTimerSeconds;
+      swSeconds = 0;
+      updateTimerDisplay();
+    }
+
+    // --- 記録・保存処理 ---
+    async function completeSession(durationSec) {
+      const now = new Date();
+      const todayStr = now.toLocaleDateString('sv-SE');
+      const timeStr = now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+
+      const newRecord = {
+        date: todayStr,
+        task: selectedTask,
+        duration: durationSec,
+        time: timeStr
+      };
+
+      if (currentUser) {
+        // クラウドへ保存
+        const recordsRef = collection(db, "users", currentUser.uid, "records");
+        await addDoc(recordsRef, { ...newRecord, timestamp: serverTimestamp() });
+        // ※クラウドの場合は onSnapshot で自動的に画面が更新されます
+      } else {
+        // ローカルへ保存
+        records.unshift(newRecord);
+        localStorage.setItem('focus_records', JSON.stringify(records));
+        updateViews();
+      }
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('task-tags');
+      container.innerHTML = '';
+      tasks.forEach(task => {
+        const isSelected = task === selectedTask;
+        const btn = document.createElement('button');
+        btn.innerText = task;
+        btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition border ${
+          isSelected 
+            ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-sm shadow-cyan-500/50' 
+            : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-white'
+        }`;
+        btn.onclick = () => {
+          selectedTask = task;
+          renderTasks();
+          updateTimerDisplay();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    window.addNewTask = async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('new-task-input');
+      const val = input.value.trim();
+      if (val && !tasks.includes(val)) {
+        tasks.push(val);
+        selectedTask = val;
+        
+        if (currentUser) {
+          const docRef = doc(db, "users", currentUser.uid);
+          await setDoc(docRef, { tasks: tasks }, { merge: true });
+        } else {
+          localStorage.setItem('focus_tasks', JSON.stringify(tasks));
+        }
+
+        input.value = '';
+        renderTasks();
+        updateTimerDisplay();
+      }
+    };
+
+    window.changeMonth = (diff) => {
+      calMonth += diff;
+      if (calMonth > 11) { calMonth = 0; calYear++; } 
+      else if (calMonth < 0) { calMonth = 11; calYear--; }
+      renderCalendar();
+    };
+
+    function renderCalendar() {
+      const container = document.getElementById('calendar-days');
+      if(!container) return;
+      container.innerHTML = '';
+      document.getElementById('calendar-month-title').innerText = `${calYear}.${String(calMonth + 1).padStart(2, '0')}`;
+
+      const firstDay = new Date(calYear, calMonth, 1).getDay();
+      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'calendar-day text-slate-800';
+        container.appendChild(empty);
+      }
+
+      const recordedDates = new Set(records.map(r => r.date));
+      const todayStr = new Date().toLocaleDateString('sv-SE');
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dayEl = document.createElement('div');
+        const hasRec = recordedDates.has(dateStr);
+        const isToday = dateStr === todayStr;
+
+        dayEl.className = `calendar-day ${hasRec ? 'has-record' : 'text-slate-600 bg-slate-900/50'} ${isToday ? 'is-today' : ''}`;
+        dayEl.innerText = d;
+        container.appendChild(dayEl);
+      }
+    }
+
+    function renderLogs() {
+      const list = document.getElementById('log-list');
+      if(!list) return;
+      list.innerHTML = '';
+      if (records.length === 0) {
+        list.innerHTML = `<li class="text-xs text-slate-600 text-center py-4">まだ記録がありません</li>`;
+        return;
+      }
+      records.slice(0, 5).forEach(r => {
+        const li = document.createElement('li');
+        li.className = "flex justify-between items-center bg-slate-900/60 p-2.5 rounded-xl border border-slate-800/80 text-xs";
+        
+        const m = Math.floor(r.duration / 60);
+        const s = r.duration % 60;
+        const timeDisplay = m > 0 ? `${m}分` : `${s}秒`;
+
+        li.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+            <span class="font-bold text-slate-200">${r.task}</span>
+          </div>
+          <div class="text-slate-400 font-mono">
+            <span>${timeDisplay}</span>
+            <span class="text-slate-600 ml-2">${r.date?.slice(5)} ${r.time}</span>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    function updateStreak() {
+      const streakEl = document.getElementById('streak-count');
+      if(!streakEl) return;
+      if (records.length === 0) {
+        streakEl.innerText = '0';
+        return;
+      }
+      const uniqueDates = Array.from(new Set(records.map(r => r.date))).sort().reverse();
+      const today = new Date().toLocaleDateString('sv-SE');
+      const yesterdayObj = new Date();
+      yesterdayObj.setDate(yesterdayObj.getDate() - 1);
+      const yesterday = yesterdayObj.toLocaleDateString('sv-SE');
+
+      let streak = 0;
+      let checkDate = uniqueDates.includes(today) ? today : (uniqueDates.includes(yesterday) ? yesterday : null);
+
+      if (checkDate) {
+        let curr = new Date(checkDate);
+        while (true) {
+          const cStr = curr.toLocaleDateString('sv-SE');
+          if (uniqueDates.includes(cStr)) {
+            streak++;
+            curr.setDate(curr.getDate() - 1);
+          } else {
+            break;
+          }
+        }
+      }
+      streakEl.innerText = streak;
+    }
+  </script>
+</body>
+</html>
